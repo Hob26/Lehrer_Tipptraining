@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tipp-Trainer – Lehrer-Übersicht</title>
+<style>
+:root{--ink:#222;--yellow:#F9C23C;--yellow2:#FFE38A;--paper:#fffdf7;
+ --n1:#2f9e44;--n2:#74b816;--n3:#f59f00;--n4:#f76707;--n5:#e03131;--n6:#862e9c}
+*{box-sizing:border-box}
+body{margin:0;background:#f3efe4;font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink);font-size:15px}
+.wrap{max-width:1250px;margin:0 auto;padding:16px}
+h1{margin:4px 0 2px;font-size:28px}
+h2{font-size:19px;margin:0 0 10px}
+.sub{color:#666;margin:0 0 10px}
+.card{background:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:14px 16px;margin:12px 0}
+.grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+button,.btn{font:inherit;background:var(--yellow);border:2px solid var(--ink);border-radius:8px;padding:5px 12px;cursor:pointer;display:inline-block}
+button.light,.btn.light{background:#fff}
+button:hover,.btn:hover{background:var(--yellow2)}
+input,select,textarea{font:inherit;border:2px solid #999;border-radius:6px;padding:3px 6px}
+.drop{border:3px dashed #999;border-radius:12px;padding:18px;text-align:center;background:#fff;margin-bottom:10px}
+.drop.over{border-color:var(--ink);background:#fff7d6}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.msg{color:#555;font-size:14px;margin:6px 0 0}
+table{border-collapse:collapse;width:100%;background:#fff}
+th,td{border:1px solid #bbb;padding:4px 7px;text-align:center;white-space:nowrap}
+th{background:var(--yellow2);cursor:pointer;user-select:none;position:sticky;top:0}
+td.l{text-align:left}
+.tblwrap{max-height:560px;overflow:auto;border:2px solid var(--ink);border-radius:8px}
+.st{color:#f08c00;letter-spacing:-1px}
+.st0{color:#ccc}
+.note{display:inline-block;min-width:28px;border-radius:6px;color:#fff;font-weight:700;padding:1px 6px}
+.n1{background:var(--n1)}.n2{background:var(--n2)}.n3{background:var(--n3)}.n4{background:var(--n4)}.n5{background:var(--n5)}.n6{background:var(--n6)}
+.key td,.key th{padding:4px 8px}
+.key input{width:70px;text-align:right}
+.bars{display:flex;align-items:flex-end;gap:14px;height:170px;padding:6px 4px 0;border-bottom:2px solid var(--ink)}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bar .b{width:100%;border:2px solid var(--ink);border-bottom:none;border-radius:6px 6px 0 0;min-height:2px}
+.bar .c{font-weight:700;margin-bottom:2px}
+.barlbl{display:flex;gap:14px;padding:4px}
+.barlbl div{flex:1;text-align:center;font-weight:700}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.stats div{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:4px 12px}
+.stats b{font-size:20px;display:block}
+.warn{color:#c92a2a}
+textarea{width:100%;font-family:"Roboto Mono",Consolas,monospace;font-size:16px}
+details summary{cursor:pointer;font-weight:700;font-size:17px}
+.x{cursor:pointer;color:#c92a2a;font-weight:700}
+@media print{
+ body{background:#fff;font-size:11px}.noprint{display:none!important}
+ .card{border:none;padding:0;margin:6px 0}.tblwrap{max-height:none;border:none;overflow:visible}
+ th{position:static}.grid2{grid-template-columns:1fr 1fr}
+ .note,.n1,.n2,.n3,.n4,.n5,.n6,th,.bar .b{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <h1>⌨️ Tipp-Trainer – Lehrer-Übersicht</h1>
+ <p class="sub" id="printHead">Alle Ergebnisse auf einen Blick · Daten bleiben auf diesem Rechner</p>
+
+ <!-- LADEN -->
+ <div class="card noprint">
+  <h2>1. Abgaben laden</h2>
+  <div class="drop" id="drop">
+   <b>Abgabe-Dateien (.json) hierher ziehen</b><br>oder
+   <label class="btn light">Dateien auswählen<input type="file" id="inFiles" accept=".json" multiple hidden></label>
+   <label class="btn light">Ganzen Ordner wählen<input type="file" id="inDir" webkitdirectory multiple hidden></label>
+  </div>
+  <div class="row">
+   <button class="light" id="btnDemo">Beispieldaten</button>
+   <button class="light" id="btnClear">Alle Daten löschen</button>
+   <span class="msg" id="loadMsg"></span>
+  </div>
+ </div>
+
+ <div class="grid2">
+  <!-- NOTENSCHLÜSSEL -->
+  <div class="card">
+   <h2>2. Notenschlüssel (Fehlerquote)</h2>
+   <div class="row noprint" style="margin-bottom:8px">
+    Test: <select id="selTest"></select>
+    Wertung: <select id="selVersuch"><option value="first">1. Versuch</option><option value="best">bester Versuch</option></select>
+   </div>
+   <table class="key" id="keyTbl"></table>
+   <p class="msg">Fehlerquote = Fehler ÷ Zeichen × 100. Die Spalte „Fehler“ zeigt, wie viele Fehler das beim gewählten Test sind.</p>
+   <div class="row noprint"><button class="light" id="btnKeyReset">Standard wiederherstellen</button></div>
+  </div>
+  <!-- NOTENSPIEGEL -->
+  <div class="card">
+   <h2>3. Notenspiegel</h2>
+   <div class="bars" id="bars"></div>
+   <div class="barlbl" id="barlbl"></div>
+   <div class="stats" id="stats"></div>
+  </div>
+ </div>
+
+ <!-- TABELLE -->
+ <div class="card">
+  <div class="row" style="justify-content:space-between">
+   <h2 style="margin:0">4. Alle Ergebnisse</h2>
+   <div class="row noprint">
+    Klasse: <select id="selKlasse"></select>
+    <button class="light" id="btnCsv">📊 Excel (CSV)</button>
+    <button id="btnPrint">🖨️ Drucken / PDF</button>
+   </div>
+  </div>
+  <p class="msg">Klick auf eine Spaltenüberschrift sortiert. ★ = Sterne in den Übungslektionen.</p>
+  <div class="tblwrap" style="margin-top:8px"><table id="tbl"></table></div>
+ </div>
+
+ <!-- TEST ERSTELLEN -->
+ <div class="card noprint">
+  <details>
+   <summary>5. Eigenen Test für die Schüler erstellen</summary>
+   <p>Hier legst du den Text fest, den alle Kinder im Test tippen. Danach wählst du die Schüler-Datei <b>tipptrainer.html</b> aus und bekommst eine neue Version mit deinem Test, die du in den Klassenordner legst.</p>
+   <div class="row">Titel: <input id="tTitle" value="Tipp-Test" style="width:260px"></div>
+   <p style="margin:8px 0 4px">Text (eine Zeile pro Zeile, nur Kleinbuchstaben):</p>
+   <textarea id="tText" rows="6"></textarea>
+   <p class="msg" id="tInfo"></p>
+   <label class="btn">Schüler-Datei wählen &amp; Test einbauen<input type="file" id="inTrainer" accept=".html,.htm" hidden></label>
+   <span class="msg" id="tMsg"></span>
+  </details>
+ </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const LESSONS=['f j','d k','s l','a ö','Grundr.','g h','e i','r u','Sätze'];
+const TRAINED='asdfghjklöeiru ';
+const DEFAULT_KEY=[2,4,6,9,12]; // bis x % -> Note 1..5, darüber 6
+let db={students:{}}; let key=DEFAULT_KEY.slice(); let sortCol='name', sortDir=1;
+try{ const s=JSON.parse(localStorage.getItem('tt_lehrer_db')||'null'); if(s) db=s; }catch(e){}
+try{ const k=JSON.parse(localStorage.getItem('tt_lehrer_key')||'null'); if(k&&k.length===5) key=k; }catch(e){}
+function save(){ try{ localStorage.setItem('tt_lehrer_db',JSON.stringify(db)); localStorage.setItem('tt_lehrer_key',JSON.stringify(key)); }catch(e){} }
+const fmt=n=>String(n).replace('.',',');
+
+// ---------- Laden ----------
+function addData(d){
+ if(!d || d.app!=='tipptrainer' || !d.name) return false;
+ const id=(d.klasse||'').trim().toLowerCase()+'|'+d.name.trim().toLowerCase();
+ const old=db.students[id];
+ if(!old || (d.abgegeben||'')>=(old.abgegeben||'')) db.students[id]=d;
+ return true;
+}
+async function readFiles(files){
+ let ok=0,bad=0;
+ for(const f of files){
+  if(!/\.json$/i.test(f.name)) continue;
+  try{ const d=JSON.parse(await f.text()); addData(d)?ok++:bad++; }catch(e){ bad++; }
+ }
+ save(); render();
+ $('loadMsg').textContent=`${ok} Abgabe(n) geladen${bad?`, ${bad} Datei(en) nicht lesbar`:''}. Insgesamt ${Object.keys(db.students).length} Kinder.`;
+}
+$('inFiles').onchange=e=>readFiles(e.target.files);
+$('inDir').onchange=e=>readFiles(e.target.files);
+const drop=$('drop');
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');readFiles(e.dataTransfer.files);});
+$('btnClear').onclick=()=>{ if(!clearArm){ clearArm=true; $('btnClear').textContent='Wirklich löschen?'; setTimeout(()=>{clearArm=false;$('btnClear').textContent='Alle Daten löschen';},3000); return; }
+ db={students:{}}; save(); render(); clearArm=false; $('btnClear').textContent='Alle Daten löschen'; $('loadMsg').textContent='Alle Daten gelöscht.'; };
+let clearArm=false;
+$('btnDemo').onclick=()=>{
+ const names=['Ali','Ben','Clara','Deniz','Emma','Finn','Greta','Hannah','Ilyas','Jonas','Kim','Lea','Mia','Noah','Ole','Paula','Sara','Tim','Yara','Zoe'];
+ const chars=78;
+ names.forEach((n,i)=>{
+  const err=[0,1,2,2,3,3,4,4,5,5,6,6,7,8,9,10,11,13,3,1][i];
+  addData({app:'tipptrainer',version:1,name:n,klasse:i<10?'5a':'5b',abgegeben:new Date().toISOString(),testTitel:'Tipp-Test',testId:'demo',
+   lektionen:LESSONS.map((t,k)=>k<=(i%9)+(i%3)?{nr:k+1,titel:t,stars:1+((i+k)%3),apm:40+((i*7+k*5)%60),acc:80+((i+k)%20)}:{nr:k+1,titel:t}),
+   test:[{textId:'demo',title:'Tipp-Test',chars,err,quote:Math.round(1000*err/chars)/10,apm:35+((i*13)%55),secs:90+i*4,versuch:1}].concat(i%6===0?[{textId:'demo',title:'Tipp-Test',chars,err:Math.max(0,err-2),quote:Math.round(1000*Math.max(0,err-2)/chars)/10,apm:50,secs:100,versuch:2}]:[])});
+ });
+ save(); render(); $('loadMsg').textContent='Beispieldaten geladen (20 Kinder).';
+};
+
+// ---------- Notenschlüssel ----------
+function noteFor(q){ for(let i=0;i<5;i++) if(q<=key[i]) return i+1; return 6; }
+function testChars(){ const tid=$('selTest').value; for(const s of Object.values(db.students)){ const t=(s.test||[]).find(x=>x.textId===tid); if(t) return t.chars; } return 0; }
+function renderKey(){
+ const ch=testChars();
+ let h='<tr><th>Note</th><th>Fehlerquote</th><th>Fehler'+(ch?` (bei ${ch} Zeichen)`:'')+'</th></tr>';
+ for(let i=0;i<6;i++){
+  const lo=i===0?0:key[i-1]; const hi=i<5?key[i]:null;
+  const fromTxt=i===0?'0 %':`über ${fmt(lo)} %`;
+  const rng = i<5? `${fromTxt} bis <input type="number" step="0.5" min="0" data-i="${i}" value="${hi}"> %` : `über ${fmt(lo)} %`;
+  let ferr='';
+  if(ch){ const maxE=i<5?Math.floor(hi*ch/100+1e-9):Infinity; const minE=i===0?0:Math.floor(lo*ch/100+1e-9)+1;
+   ferr = i<5? (minE>maxE?'–':(minE===maxE?`${minE}`:`${minE} – ${maxE}`)) : `ab ${minE}`; }
+  h+=`<tr><td><span class="note n${i+1}">${i+1}</span></td><td style="text-align:left">${rng}</td><td>${ferr}</td></tr>`;
+ }
+ $('keyTbl').innerHTML=h;
+ $('keyTbl').querySelectorAll('input').forEach(inp=>inp.onchange=()=>{
+  const i=+inp.dataset.i; let v=parseFloat(String(inp.value).replace(',','.')); if(isNaN(v)) v=key[i];
+  key[i]=v; for(let k=i+1;k<5;k++) if(key[k]<key[k-1]) key[k]=key[k-1];
+  for(let k=i-1;k>=0;k--) if(key[k]>key[k+1]) key[k]=key[k+1];
+  save(); render();
+ });
+}
+$('btnKeyReset').onclick=()=>{ key=DEFAULT_KEY.slice(); save(); render(); };
+$('selTest').onchange=render; $('selVersuch').onchange=render; $('selKlasse').onchange=render;
+
+// ---------- Auswertung ----------
+function pickTest(s){
+ const tid=$('selTest').value; const arr=(s.test||[]).filter(x=>x.textId===tid);
+ if(!arr.length) return null;
+ if($('selVersuch').value==='best') return arr.reduce((a,b)=>b.quote<a.quote?b:a);
+ return arr.slice().sort((a,b)=>(a.versuch||0)-(b.versuch||0))[0];
+}
+function rows(){
+ const kl=$('selKlasse').value;
+ return Object.values(db.students).filter(s=>!kl||s.klasse===kl).map(s=>{
+  const t=pickTest(s); const tid=$('selTest').value;
+  const stars=(s.lektionen||[]).map(l=>l.stars||0);
+  return {s,name:s.name,klasse:s.klasse||'',stars,starsum:stars.reduce((a,b)=>a+b,0),
+   t, err:t?t.err:null, chars:t?t.chars:null, quote:t?t.quote:null, apm:t?t.apm:null,
+   versuche:(s.test||[]).filter(x=>x.textId===tid).length, note:t?noteFor(t.quote):null};
+ });
+}
+function render(){
+ // Auswahllisten
+ const tests={}; const klassen=new Set();
+ Object.values(db.students).forEach(s=>{ klassen.add(s.klasse||''); (s.test||[]).forEach(t=>{ tests[t.textId]=tests[t.textId]||{title:t.title||s.testTitel||'Test',n:0}; tests[t.textId].n++; }); });
+ const curT=$('selTest').value, curK=$('selKlasse').value;
+ const tids=Object.keys(tests).sort((a,b)=>tests[b].n-tests[a].n);
+ $('selTest').innerHTML=tids.length?tids.map(t=>`<option value="${t}">${tests[t].title} (${tests[t].n}×)</option>`).join(''):'<option value="">– noch kein Test –</option>';
+ if(tids.includes(curT)) $('selTest').value=curT;
+ $('selKlasse').innerHTML='<option value="">alle</option>'+[...klassen].sort().map(k=>`<option>${k}</option>`).join('');
+ if([...klassen].includes(curK)) $('selKlasse').value=curK;
+ renderKey();
+ const R=rows();
+ // Tabelle
+ R.sort((a,b)=>{ let x=a[sortCol],y=b[sortCol]; if(x===null) return 1; if(y===null) return -1;
+  if(typeof x==='string') return x.localeCompare(y,'de')*sortDir; return (x-y)*sortDir; });
+ const cols=[['name','Name'],['klasse','Klasse'],...LESSONS.map((l,i)=>['L'+i,l]),['starsum','★ ges.'],['err','Fehler'],['chars','Zeichen'],['quote','Fehler-%'],['apm','Anschl./Min'],['versuche','Versuche'],['note','Note'],['del','']];
+ let h='<tr>'+cols.map(([k,t])=>`<th data-k="${k}">${t}${sortCol===k?(sortDir>0?' ▲':' ▼'):''}</th>`).join('')+'</tr>';
+ R.forEach(r=>{
+  h+=`<tr><td class="l"><b>${esc(r.name)}</b></td><td>${esc(r.klasse)}</td>`+
+   r.stars.map(n=>`<td class="${n?'st':'st0'}">${n?'★'.repeat(n):'–'}</td>`).join('')+
+   `<td>${r.starsum}/27</td>`+
+   (r.t?`<td>${r.err}</td><td>${r.chars}</td><td>${fmt(r.quote)} %</td><td>${r.apm}</td><td>${r.versuche}</td><td><span class="note n${r.note}">${r.note}</span></td>`
+       :`<td colspan="5" class="warn">kein Test</td><td>–</td>`)+
+   `<td class="noprint"><span class="x" title="Entfernen" data-id="${esc(idOf(r.s))}">✕</span></td></tr>`;
+ });
+ if(!R.length) h+=`<tr><td colspan="${cols.length}" style="padding:20px;color:#777">Noch keine Abgaben geladen.</td></tr>`;
+ $('tbl').innerHTML=h;
+ $('tbl').querySelectorAll('th').forEach(th=>th.onclick=()=>{ const k=th.dataset.k; if(k==='del'||k.startsWith('L')) return; sortDir=sortCol===k?-sortDir:1; sortCol=k; render(); });
+ $('tbl').querySelectorAll('.x').forEach(x=>x.onclick=()=>{ delete db.students[x.dataset.id]; save(); render(); });
+ // Notenspiegel
+ const graded=R.filter(r=>r.note); const cnt=[0,0,0,0,0,0]; graded.forEach(r=>cnt[r.note-1]++);
+ const mx=Math.max(1,...cnt);
+ $('bars').innerHTML=cnt.map((c,i)=>`<div class="bar"><div class="c">${c}</div><div class="b n${i+1}" style="height:${c/mx*85}%"></div></div>`).join('');
+ $('barlbl').innerHTML=cnt.map((c,i)=>`<div>${i+1}</div>`).join('');
+ const avg=graded.length? graded.reduce((a,r)=>a+r.note,0)/graded.length : 0;
+ const avgQ=graded.length? graded.reduce((a,r)=>a+r.quote,0)/graded.length : 0;
+ const avgA=graded.length? graded.reduce((a,r)=>a+r.apm,0)/graded.length : 0;
+ $('stats').innerHTML=`<div>Notendurchschnitt<b>${graded.length?fmt(avg.toFixed(2)):'–'}</b></div><div>Teilnehmer<b>${graded.length} / ${R.length}</b></div>
+  <div>Ø Fehlerquote<b>${graded.length?fmt(avgQ.toFixed(1))+' %':'–'}</b></div><div>Ø Anschl./Min<b>${graded.length?Math.round(avgA):'–'}</b></div>`;
+ const kl=$('selKlasse').value; const tt=$('selTest').selectedOptions[0];
+ $('printHead').textContent=`Klasse: ${kl||'alle'} · ${tt?tt.textContent.replace(/ \(\d+×\)/,''):''} · Stand: ${new Date().toLocaleDateString('de-DE')}`;
+}
+function idOf(s){ return (s.klasse||'').trim().toLowerCase()+'|'+s.name.trim().toLowerCase(); }
+function esc(t){ return String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+// ---------- Export ----------
+$('btnCsv').onclick=()=>{
+ const R=rows().sort((a,b)=>a.klasse.localeCompare(b.klasse)||a.name.localeCompare(b.name,'de'));
+ const head=['Name','Klasse',...LESSONS.map(l=>'Sterne '+l),'Sterne gesamt','Fehler','Zeichen','Fehlerquote %','Anschläge/Min','Versuche','Note'];
+ const lines=[head.join(';')].concat(R.map(r=>[r.name,r.klasse,...r.stars,r.starsum,r.err??'',r.chars??'',r.quote!==null?fmt(r.quote):'',r.apm??'',r.versuche,r.note??''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')));
+ const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});
+ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`Tipptrainer_Ergebnisse_${$('selKlasse').value||'alle'}.csv`; document.body.appendChild(a); a.click(); a.remove();
+};
+$('btnPrint').onclick=()=>window.print();
+
+// ---------- Test erstellen ----------
+$('tText').value='lisa sah die kuh\ndas reh lief auf die heide\nder adler sah das ei\nsag es leise\nfred las es ihr';
+function tLines(){ return $('tText').value.split(/\r?\n/).map(l=>l.trim().replace(/\s+/g,' ')).filter(Boolean); }
+function tCheck(){
+ const L=tLines(); const n=L.join('').length;
+ const unk=[...new Set(L.join('').split('').filter(c=>!TRAINED.includes(c)))];
+ $('tInfo').innerHTML=`${L.length} Zeilen · ${n} Zeichen`+(unk.length?` · <span class="warn">Noch nicht geübte Zeichen: <b>${unk.map(esc).join(' ')}</b></span>`:' · ✔ nur geübte Buchstaben');
+}
+$('tText').oninput=tCheck; tCheck();
+$('inTrainer').onchange=async e=>{
+ const f=e.target.files[0]; if(!f) return;
+ const src=await f.text();
+ const re=/\/\*TEST-START\*\/[\s\S]*?\/\*TEST-END\*\//;
+ if(!re.test(src)){ $('tMsg').innerHTML='<span class="warn">Das ist nicht die richtige Datei (tipptrainer.html).</span>'; return; }
+ const L=tLines(); if(!L.length){ $('tMsg').textContent='Bitte zuerst einen Text eingeben.'; return; }
+ const T={title:$('tTitle').value.trim()||'Tipp-Test',lines:L.map(l=>l.toLowerCase())};
+ const out=src.replace(re,'/*TEST-START*/const TEST='+JSON.stringify(T).replace(/</g,'\\u003c')+';/*TEST-END*/');
+ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([out],{type:'text/html'}));
+ a.download='tipptrainer.html'; document.body.appendChild(a); a.click(); a.remove();
+ $('tMsg').textContent='✅ Neue tipptrainer.html gespeichert – diese Datei in den Klassenordner legen.';
+ e.target.value='';
+};
+
+render();
+</script>
+</body>
+</html>
